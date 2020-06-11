@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+    <meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Botiga online dels millors productes del mercat</title>
+    
+	<link rel="stylesheet" href="./assets/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="./assets/css/styles.css"/>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="./js/bootstrap.min.js"></script>
+   
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Botiga Online Aleix</a>
+                </li>
+            </ul>
+            <div class="cart-container">
+                <button class="btn bnt-secondary cart" onClick="showShoppingCart()" type="button">
+                    <img src="./img/cart.png" alt="carrito" />
+                </button>
+                <div class="cart-products hidden">
+                    Este carrito esta vacío...
+                </div>   
+            </div>
+        </div>
+    </nav>
+
+    <div class="container product-list">
+        <div class="row products">  
+    </div>
+
+    <footer class="foot bg-dark"></footer>
+
+</body>
+
+</html>
+
+<script>
+
+const CART_PRODUCTS = "carProductsId";
+
+    var data = [
+        {id: 1, image:"./img/benjerry.jpg", img: 'benjerry', price: 5.95, qtty: 0},
+        {id: 2, image:"./img/caffelatte.jpg", img: 'caffelatte', price: 1.27, qtty: 0},
+        {id: 3, image:"./img/calippo.jpg" ,img: 'calippo', price: 4.10, qtty: 0},
+        {id: 4, image:"./img/evax.jpg", img: 'evax', price: 2.40, qtty: 0},
+        {id: 5, image:"./img/pizza.jpg", img: 'pizza', price: 4.95, qtty: 0},
+        {id: 6, image:"./img/scottex.jpg", img: 'scottex', price: 4.50, qtty: 0},
+        {id: 7, image:"./img/spaghetti.jpg", img: 'spaghetti', price: 1.25, qtty: 0},
+        {id: 8, image:"./img/triangulos.jpg", img: 'triangulos', price: 2.35, qtty: 0},
+        {id: 9, image:"./img/xibeca.jpg", img: 'xibeca', price: 3.75, qtty: 0},
+        {id: 10, image:"./img/chipsahoy.jpg", img: 'chipsahoy', price: 2.20, qtty: 0}
+    ];
+
+    const showShoppingCart=()=>{
+        const containerCart = document.getElementsByClassName("cart-products")[0];
+
+        containerCart.classList.forEach((item) => {
+            if (item === "hidden") {
+                containerCart.classList.remove("hidden");
+                containerCart.classList.add("active");
+                }
+
+            if (item === "active") {
+                containerCart.classList.remove("active");
+                containerCart.classList.add("hidden");
+            }
+            
+        });
+    }
+
+    const addProductCart = (id) => {
+
+        let arrayProductId = [];
+
+        let localStorageItems = localStorage.getItem(CART_PRODUCTS);
+        //adding products in localStorage
+        if (localStorageItems === null) {
+            arrayProductId.push(id);
+            localStorage.setItem(CART_PRODUCTS, arrayProductId);
+        } else {
+            let productsId = localStorage.getItem(CART_PRODUCTS);
+            if (productsId.length > 0) {
+                productsId += "," + id;
+                } else {
+                    productsId = productsId;
+                }
+                localStorage.setItem(CART_PRODUCTS, productsId);
+        }
+        addItem();
+    }
+
+    const addItem=()=> {
+
+        //convert local storage in array
+        const localStorageItems = localStorage.getItem(CART_PRODUCTS);
+        let html ='';
+
+        if(!localStorageItems){
+            resetTotals();
+            html = `
+                <div>Carrito vacio</div>
+            `
+        } else{
+
+            const idProductsSplit = localStorageItems.split(',');
+            //delete duplicate id's
+            const idProductsCart = Array.from(new Set(idProductsSplit));
+
+            
+            idProductsCart.forEach(id=>{
+                data.forEach(product => {
+                if(id == product.id){
+                    const quantity = countDuplicatesId(id, idProductsSplit);
+                    const totalPrice = product.price * quantity;
+                    html += `
+                    <div class="cart-product">
+                    <img src="${product.image}" alt="${product.img}" />
+                    <div class="cart-product-info">
+                        <span class="quantity">${quantity}</span>
+                        <p>${product.img}</p>
+                        <p>${totalPrice.toFixed(2)} €</p>
+                        <p class="cart-product-delete">
+                        <button onClick="removeItem(${product.id})">Eliminar</button>
+                        </p>
+                    </div>
+                    </div>
+                    `
+                    calculateTotals(quantity,totalPrice);
+                }}) 
+              
+            });
+
+            
+
+        }
+    
+        document.getElementsByClassName("cart-products")[0].innerHTML=html;
+
+    }
+
+    const calculateTotals = (quantity,totalPrice) =>{
+
+        let html ='';
+        let count=0;
+        let price=0;
+
+        const localStorageItems = localStorage.getItem(CART_PRODUCTS);
+        const idProductsSplit = localStorageItems.split(',');
+
+        idProductsSplit.forEach(id=>{
+            count++;
+            data.forEach(product=>{
+                if(id==product.id){
+                    price += product.price;
+                }
+            })
+            
+        })
+
+        html =`
+            <div class="totals">Total Products: ${count} </div>
+            <div class="totals">Total Price: ${price.toFixed(2)} € </div>
+        `;
+
+        document.getElementsByClassName("foot")[0].innerHTML=html;
+
+    } 
+    
+    const removeItem = (id) => {
+
+
+        const idProductsCart = localStorage.getItem(CART_PRODUCTS);
+        const arrayIdProductsCart = idProductsCart.split(',');
+        const resultIdDelete = deleteAllIds(id, arrayIdProductsCart);
+
+       
+        if(resultIdDelete){
+            let count = 0;
+            let idsString="";
+
+            resultIdDelete.forEach(id=>{
+                count++;
+                if(count< resultIdDelete.length){
+                    idsString += id +',';
+                }else{
+                    idsString += id;
+                }
+            });
+
+            localStorage.setItem(CART_PRODUCTS,idsString);
+
+        }
+
+        const idsLocalStorage = localStorage.getItem(CART_PRODUCTS);
+
+        if(!idsLocalStorage){
+            localStorage.removeItem(CART_PRODUCTS);
+        }
+
+        addItem();
+
+    }
+
+    const render_list_of_items = () => {
+
+        let html = "";
+
+        data.forEach(product =>{
+            html += `
+        <div class="col-3 product-container"> 
+          <div class="card product"> 
+              <img 
+                src="${product.image}"
+                class="card-img-top"
+                alt="${product.img}"
+              />
+              <div class="card-body">
+                  <h5 class="card-title">${product.img}</h5>
+                  <p class="card-text">${product.price} € / Unidad</p>
+                  <button type="button" class="btn btn-primary btn-cart" onClick="addProductCart(${product.id})">Añadir</button>
+              </div>
+          </div>
+        </div>
+            `
+        });
+
+        document.getElementsByClassName("products")[0].innerHTML = html;
+        
+    }
+
+    const resetTotals =()=>{
+       
+       count = 0;
+       price = 0;
+       
+       let html =`
+           <div class="totals">Total Products: ${count} </div>
+           <div class="totals">Total Price: ${price} € </div>
+       `;
+
+       document.getElementsByClassName("foot")[0].innerHTML=html;
+
+   }
+
+    const deleteAllIds = (id,arrayIds) => {
+        return arrayIds.filter(itemId =>{
+            return itemId != id;
+        })
+    }
+
+    const countDuplicatesId = (value, arrayIds) => {
+
+        let count = 0;
+        arrayIds.forEach(id=>{
+            if(value==id){
+            count++;
+            }
+        });
+        return count;
+    }
+
+    //call this functions to charge the items and the cart
+    render_list_of_items();
+    addItem();
+
+</script>
